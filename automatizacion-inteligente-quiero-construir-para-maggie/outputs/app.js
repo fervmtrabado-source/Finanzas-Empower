@@ -213,6 +213,25 @@ function getPaymentPremium(row) {
   return annual / divisor;
 }
 
+function isSinglePremium(row) {
+  return normalize(row[columns.planName]).includes("PRIMA UNICA") ||
+    normalize(row[columns.frequency]).includes("PRIMA UNICA");
+}
+
+function isReportablePolicy(row) {
+  return normalize(row[columns.status]) === "EN VIGOR" && !isSinglePremium(row);
+}
+
+function dedupeByHolder(rows) {
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = normalize(row[columns.holder]);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function getBasePaymentDate(row) {
   const explicitPaymentColumn = Object.keys(row).find((key) =>
     normalize(key).includes("FECHA") && normalize(key).includes("PAGO")
@@ -271,7 +290,7 @@ function getBirthdayMonthDay(row) {
 }
 
 function buildReports(workDate) {
-  const activeRows = state.rows.filter((row) => normalize(row[columns.status]) === "EN VIGOR");
+  const activeRows = state.rows.filter(isReportablePolicy);
   const monthlyRange = nextMonthRange(workDate);
   const weeklyStart = startOfWeek(workDate);
   const weeklyEnd = endOfWeek(workDate);
@@ -287,10 +306,10 @@ function buildReports(workDate) {
     return getOccurrencesInRange(row, weeklyStart, weeklyEnd).map((date) => ({ row, date }));
   }).sort((a, b) => a.date - b.date || a.row[columns.holder].localeCompare(b.row[columns.holder]));
 
-  const birthdays = activeRows.filter((row) => {
+  const birthdays = dedupeByHolder(activeRows.filter((row) => {
     const birthday = getBirthdayMonthDay(row);
     return birthday && birthday.day === workDate.getDate() && birthday.month === workDate.getMonth();
-  }).sort((a, b) => a[columns.holder].localeCompare(b[columns.holder]));
+  })).sort((a, b) => a[columns.holder].localeCompare(b[columns.holder]));
 
   return { activeRows, monthly, weekly, birthdays, monthlyRange, weeklyStart, weeklyEnd };
 }
