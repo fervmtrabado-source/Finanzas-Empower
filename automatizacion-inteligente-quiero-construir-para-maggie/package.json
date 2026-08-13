@@ -1,0 +1,13 @@
+{
+  "name": "finanzas-empower-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Asistente digital para recordatorios de pólizas de Finanzas Empower.",
+  "scripts": {
+    "dev": "netlify dev",
+    "serve": "python3 -m http.server 4180 --directory outputs"
+  },
+  "dependencies": {
+    "@netlify/functions": "^3.0.0"
+  }
+}

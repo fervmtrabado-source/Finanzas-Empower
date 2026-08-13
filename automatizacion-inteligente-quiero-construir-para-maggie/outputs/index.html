@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Finanzas Empower | Agenda inteligente</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <img src="assets/finanzas-empower-logo.jpg" alt="Finanzas Empower by Maggie Hernández">
+        </div>
+        <div class="topbar-actions">
+          <label class="date-control">
+            Fecha de trabajo
+            <input id="workDate" type="date">
+          </label>
+          <label class="upload-button">
+            <input id="csvInput" type="file" accept=".csv,text/csv">
+            Subir CSV
+          </label>
+        </div>
+      </header>
+
+      <section class="status-band">
+        <div>
+          <p class="eyebrow">Agenda de pólizas</p>
+          <h1>Recordatorios automáticos para Maggie</h1>
+          <p id="fileStatus">Cargando muestra inicial...</p>
+          <p id="syncStatus" class="sync-status">Modo local: al desplegarse, cada CSV quedará guardado para los avisos automáticos.</p>
+        </div>
+        <div class="summary-grid" aria-label="Resumen del archivo">
+          <article>
+            <span id="totalPolicies">0</span>
+            <small>Pólizas En Vigor</small>
+          </article>
+          <article>
+            <span id="monthlyCount">0</span>
+            <small>Semestrales/anuales del próximo mes</small>
+          </article>
+          <article>
+            <span id="weeklyCount">0</span>
+            <small>Cobros semanales no automáticos</small>
+          </article>
+          <article>
+            <span id="birthdayCount">0</span>
+            <small>Cumpleaños de hoy</small>
+          </article>
+        </div>
+      </section>
+
+      <nav class="tabs" aria-label="Reportes">
+        <button class="tab is-active" data-tab="monthly">Mes siguiente</button>
+        <button class="tab" data-tab="weekly">Semana actual</button>
+        <button class="tab" data-tab="birthdays">Cumpleaños</button>
+        <button class="tab" data-tab="all">Archivo</button>
+      </nav>
+
+      <section class="panel is-active" id="monthlyPanel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Email mensual</p>
+            <h2 id="monthlyTitle">Semestrales y anuales</h2>
+          </div>
+          <button class="ghost-button" id="copyMonthly">Copiar texto de email</button>
+        </div>
+        <div class="notice">Este reporte incluye pólizas semestrales y anuales del mes completo, sin importar método de pago.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha de cobro</th>
+                <th>Contratante</th>
+                <th>Póliza</th>
+                <th>Frecuencia</th>
+                <th>Método</th>
+                <th>Prima anual</th>
+              </tr>
+            </thead>
+            <tbody id="monthlyRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" id="weeklyPanel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Email de lunes</p>
+            <h2 id="weeklyTitle">Pagos de esta semana</h2>
+          </div>
+          <button class="ghost-button" id="copyWeekly">Copiar texto de email</button>
+        </div>
+        <div class="notice">Incluye pólizas de cualquier frecuencia cuya fecha de cobro cae esta semana y que no sean cargo automático.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha de pago</th>
+                <th>Contratante</th>
+                <th>Póliza</th>
+                <th>Frecuencia</th>
+                <th>Método</th>
+                <th>Teléfono</th>
+              </tr>
+            </thead>
+            <tbody id="weeklyRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" id="birthdaysPanel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">WhatsApp diario</p>
+            <h2 id="birthdayTitle">Tarjetas de cumpleaños</h2>
+          </div>
+          <button class="ghost-button" id="copyBirthdays">Copiar mensajes</button>
+        </div>
+        <div id="birthdayCards" class="birthday-grid"></div>
+      </section>
+
+      <section class="panel" id="allPanel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Revisión general</p>
+            <h2>Lectura del CSV</h2>
+          </div>
+          <input id="searchBox" class="search" type="search" placeholder="Buscar contratante, póliza o método">
+        </div>
+        <div class="rules-grid">
+          <article><strong>Cargo automático</strong><span>CARGO AUTOMATICO A TARJ CRED y TDD</span></article>
+          <article><strong>Reporte semanal</strong><span>Todo lo que no sea cargo automático</span></article>
+          <article><strong>Fecha de cobro</strong><span>Fecha de pago si existe; si no, fecha de emisión</span></article>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Contratante</th>
+                <th>Póliza</th>
+                <th>Estatus</th>
+                <th>Frecuencia</th>
+                <th>Método</th>
+                <th>Próximo cobro</th>
+                <th>Cumpleaños</th>
+              </tr>
+            </thead>
+            <tbody id="allRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
