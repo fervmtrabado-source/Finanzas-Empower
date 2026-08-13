@@ -166,28 +166,48 @@ function getByAliases(row, aliases) {
   return "";
 }
 
+function getByHeaderPattern(row, includes, excludes = []) {
+  const keys = Object.keys(row);
+  const match = keys.find((key) => {
+    const normalized = normalize(key);
+    return includes.every((part) => normalized.includes(normalize(part))) &&
+      excludes.every((part) => !normalized.includes(normalize(part)));
+  });
+  return match ? row[match] : "";
+}
+
+function getAnnualPremium(row) {
+  return row[columns.premium] || getByAliases(row, [
+    "Prima anual emitido",
+    "Prima anual emitida",
+    "Prima anual",
+    "Prima emitido",
+    "Prima emitida",
+  ]) || getByHeaderPattern(row, ["prima", "anual"], ["convert"]);
+}
+
 function getConvertedPremium(row) {
   return row[columns.premiumConverted] || getByAliases(row, [
     "Prima a pagar convertida",
     "Prima a pagar (convertida)",
     "Prima anual emitido (convertido)",
     "Prima anual emitida (convertida)",
-  ]);
+  ]) || getByHeaderPattern(row, ["prima", "convert"]);
 }
 
 function getPlanCurrency(row) {
   const converted = parseNumber(getConvertedPremium(row));
-  const annual = parseNumber(row[columns.premium]);
+  const annual = parseNumber(getAnnualPremium(row));
   if (!converted || !annual) return "No disponible";
   const ratio = converted / annual;
-  if (ratio === 1) return "PESOS";
-  if (ratio > 12) return "DÓLARES";
-  if (ratio < 12) return "UDI";
+  if (Math.abs(ratio - 1) < 0.0001) return "PESOS";
+  if (ratio >= 12) return "DÓLARES";
+  if (ratio > 0 && ratio < 12) return "UDI";
   return "No disponible";
 }
 
 function getPaymentPremium(row) {
-  const annual = parseNumber(row[columns.premium]);
+  const annual = parseNumber(getAnnualPremium(row));
   const divisor = paymentsPerYear[normalize(row[columns.frequency])];
   if (!annual || !divisor) return "";
   return annual / divisor;

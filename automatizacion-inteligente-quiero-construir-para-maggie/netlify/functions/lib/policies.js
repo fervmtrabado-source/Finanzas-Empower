@@ -91,28 +91,48 @@ function getByAliases(row, aliases) {
   return "";
 }
 
+function getByHeaderPattern(row, includes, excludes = []) {
+  const keys = Object.keys(row);
+  const match = keys.find((key) => {
+    const normalized = normalize(key);
+    return includes.every((part) => normalized.includes(normalize(part))) &&
+      excludes.every((part) => !normalized.includes(normalize(part)));
+  });
+  return match ? row[match] : "";
+}
+
+function getAnnualPremium(row) {
+  return row[COLUMNS.premium] || getByAliases(row, [
+    "Prima anual emitido",
+    "Prima anual emitida",
+    "Prima anual",
+    "Prima emitido",
+    "Prima emitida",
+  ]) || getByHeaderPattern(row, ["prima", "anual"], ["convert"]);
+}
+
 function getConvertedPremium(row) {
   return row[COLUMNS.premiumConverted] || getByAliases(row, [
     "Prima a pagar convertida",
     "Prima a pagar (convertida)",
     "Prima anual emitido (convertido)",
     "Prima anual emitida (convertida)",
-  ]);
+  ]) || getByHeaderPattern(row, ["prima", "convert"]);
 }
 
 function getPlanCurrency(row) {
   const converted = parseNumber(getConvertedPremium(row));
-  const annual = parseNumber(row[COLUMNS.premium]);
+  const annual = parseNumber(getAnnualPremium(row));
   if (!converted || !annual) return "No disponible";
   const ratio = converted / annual;
-  if (ratio === 1) return "PESOS";
-  if (ratio > 12) return "DÓLARES";
-  if (ratio < 12) return "UDI";
+  if (Math.abs(ratio - 1) < 0.0001) return "PESOS";
+  if (ratio >= 12) return "DÓLARES";
+  if (ratio > 0 && ratio < 12) return "UDI";
   return "No disponible";
 }
 
 function getPaymentPremium(row) {
-  const annual = parseNumber(row[COLUMNS.premium]);
+  const annual = parseNumber(getAnnualPremium(row));
   const divisor = PAYMENTS_PER_YEAR[normalize(row[COLUMNS.frequency])];
   if (!annual || !divisor) return "";
   return annual / divisor;
@@ -181,7 +201,7 @@ function toPolicyRecord(row, uploadId) {
     holder: row[COLUMNS.holder] || "",
     insured: row[COLUMNS.insured] || "",
     next_birthday: row[COLUMNS.nextBirthday] || "",
-    annual_premium: row[COLUMNS.premium] || "",
+    annual_premium: getAnnualPremium(row),
     converted_premium: getConvertedPremium(row),
     payment_premium: String(getPaymentPremium(row) || ""),
     email: row[COLUMNS.email] || "",
@@ -193,6 +213,11 @@ function toPolicyRecord(row, uploadId) {
 }
 
 function fromPolicyRecord(record) {
+  const premiumRow = {
+    [COLUMNS.premium]: record.annual_premium,
+    [COLUMNS.premiumConverted]: record.converted_premium,
+    [COLUMNS.frequency]: record.frequency,
+  };
   return {
     [COLUMNS.status]: record.status,
     [COLUMNS.planName]: record.plan_name,
@@ -209,8 +234,8 @@ function fromPolicyRecord(record) {
     [COLUMNS.email]: record.email,
     [COLUMNS.premium]: record.annual_premium,
     [COLUMNS.premiumConverted]: record.converted_premium,
-    "Moneda del Plan": record.plan_currency,
-    PrimaPago: record.payment_premium,
+    "Moneda del Plan": record.plan_currency || getPlanCurrency(premiumRow),
+    PrimaPago: record.payment_premium || String(getPaymentPremium(premiumRow) || ""),
   };
 }
 
