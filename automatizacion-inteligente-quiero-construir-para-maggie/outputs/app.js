@@ -6,6 +6,7 @@ const state = {
 
 const columns = {
   status: "Estatus",
+  planName: "Nombre del Plan",
   policy: "Número de Póliza",
   issueDate: "Fecha de emisión",
   paymentMethod: "Método de pago",
@@ -17,6 +18,7 @@ const columns = {
   phone: "Información adicional - Teléfono de preferencia",
   email: "Información adicional - Email de preferencia",
   premium: "Prima anual emitido",
+  premiumConverted: "Prima anual emitido (convertido)",
 };
 
 const frequencyMonths = {
@@ -144,6 +146,34 @@ function formatMoney(value) {
   }).format(number);
 }
 
+function getByAliases(row, aliases) {
+  const keys = Object.keys(row);
+  for (const alias of aliases) {
+    const match = keys.find((key) => normalize(key) === normalize(alias));
+    if (match && row[match]) return row[match];
+  }
+  return "";
+}
+
+function getPlanCurrency(row) {
+  return getByAliases(row, [
+    "Moneda del Plan",
+    "Moneda del plan",
+    "Moneda Plan",
+    "Moneda",
+    "Divisa",
+  ]);
+}
+
+function getConvertedPremium(row) {
+  return row[columns.premiumConverted] || getByAliases(row, [
+    "Prima a pagar convertida",
+    "Prima a pagar (convertida)",
+    "Prima anual emitido (convertido)",
+    "Prima anual emitida (convertida)",
+  ]);
+}
+
 function getBasePaymentDate(row) {
   const explicitPaymentColumn = Object.keys(row).find((key) =>
     normalize(key).includes("FECHA") && normalize(key).includes("PAGO")
@@ -251,19 +281,23 @@ function render() {
     formatDate(date),
     row[columns.holder],
     row[columns.policy],
+    row[columns.planName],
+    getPlanCurrency(row) || "No disponible",
     `<span class="pill rose">${row[columns.frequency]}</span>`,
     row[columns.paymentMethod],
-    formatMoney(row[columns.premium]),
-  ])).join("") : emptyHtml("No hay pólizas semestrales o anuales para el mes siguiente.", 6);
+    formatMoney(getConvertedPremium(row)),
+  ])).join("") : emptyHtml("No hay pólizas semestrales o anuales para el mes siguiente.", 8);
 
   els.weeklyRows.innerHTML = reports.weekly.length ? reports.weekly.map(({ row, date }) => rowHtml([
     formatDate(date),
     row[columns.holder],
     row[columns.policy],
+    row[columns.planName],
+    getPlanCurrency(row) || "No disponible",
     `<span class="pill">${row[columns.frequency]}</span>`,
     row[columns.paymentMethod],
-    row[columns.phone],
-  ])).join("") : emptyHtml("No hay cobros no automáticos para esta semana.", 6);
+    formatMoney(getConvertedPremium(row)),
+  ])).join("") : emptyHtml("No hay cobros no automáticos para esta semana.", 8);
 
   renderAllRows();
   renderBirthdays(reports.birthdays);
@@ -290,13 +324,16 @@ function renderAllRows() {
     return rowHtml([
       row[columns.holder],
       row[columns.policy],
+      row[columns.planName],
+      getPlanCurrency(row) || "No disponible",
       row[columns.status],
       row[columns.frequency],
       isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
+      formatMoney(getConvertedPremium(row)),
       next ? formatDate(next) : "",
       birthday ? `${String(birthday.day).padStart(2, "0")}/${String(birthday.month + 1).padStart(2, "0")}` : "",
     ]);
-  }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 7);
+  }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 10);
 }
 
 function renderBirthdays(rows) {
@@ -319,14 +356,14 @@ function buildEmailText(type) {
     return [
       `Maggie, estos son los cobros semestrales y anuales de ${new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" }).format(reports.monthlyRange.start)}:`,
       "",
-      ...reports.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.frequency]} | ${row[columns.paymentMethod]}`),
+      ...reports.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[columns.frequency]} | ${row[columns.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
     ].join("\n");
   }
   if (type === "weekly") {
     return [
       `Maggie, estos son los cobros no automáticos de la semana ${formatDate(reports.weeklyStart)} al ${formatDate(reports.weeklyEnd)}:`,
       "",
-      ...reports.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.frequency]} | ${row[columns.paymentMethod]}`),
+      ...reports.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[columns.frequency]} | ${row[columns.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
     ].join("\n");
   }
   return reports.birthdays.map((row) => `Feliz cumpleaños, ${row[columns.holder]}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar. Con cariño, Finanzas Empower.`).join("\n\n");

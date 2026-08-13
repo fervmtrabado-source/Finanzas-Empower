@@ -1,5 +1,6 @@
 const COLUMNS = {
   status: "Estatus",
+  planName: "Nombre del Plan",
   policy: "Número de Póliza",
   issueDate: "Fecha de emisión",
   paymentMethod: "Método de pago",
@@ -11,6 +12,7 @@ const COLUMNS = {
   phone: "Información adicional - Teléfono de preferencia",
   email: "Información adicional - Email de preferencia",
   premium: "Prima anual emitido",
+  premiumConverted: "Prima anual emitido (convertido)",
 };
 
 const FREQUENCY_MONTHS = {
@@ -57,6 +59,44 @@ function formatDate(date) {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+function formatMoney(value) {
+  const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
+  if (!Number.isFinite(number) || number === 0) return "";
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(number);
+}
+
+function getByAliases(row, aliases) {
+  const keys = Object.keys(row);
+  for (const alias of aliases) {
+    const match = keys.find((key) => normalize(key) === normalize(alias));
+    if (match && row[match]) return row[match];
+  }
+  return "";
+}
+
+function getPlanCurrency(row) {
+  return getByAliases(row, [
+    "Moneda del Plan",
+    "Moneda del plan",
+    "Moneda Plan",
+    "Moneda",
+    "Divisa",
+  ]);
+}
+
+function getConvertedPremium(row) {
+  return row[COLUMNS.premiumConverted] || getByAliases(row, [
+    "Prima a pagar convertida",
+    "Prima a pagar (convertida)",
+    "Prima anual emitido (convertido)",
+    "Prima anual emitida (convertida)",
+  ]);
 }
 
 function parseCsv(text) {
@@ -109,7 +149,8 @@ function toPolicyRecord(row, uploadId) {
   return {
     upload_id: uploadId,
     status: row[COLUMNS.status] || "",
-    plan_name: row["Nombre del Plan"] || "",
+    plan_name: row[COLUMNS.planName] || "",
+    plan_currency: getPlanCurrency(row),
     advisor_key: row["Clave de asesor"] || "",
     advisor_name: row["Nombre del Asesor"] || "",
     policy_number: row[COLUMNS.policy] || "",
@@ -122,6 +163,7 @@ function toPolicyRecord(row, uploadId) {
     insured: row[COLUMNS.insured] || "",
     next_birthday: row[COLUMNS.nextBirthday] || "",
     annual_premium: row[COLUMNS.premium] || "",
+    converted_premium: getConvertedPremium(row),
     email: row[COLUMNS.email] || "",
     phone: row[COLUMNS.phone] || "",
     birth_date: row[COLUMNS.birthDate] || "",
@@ -133,6 +175,7 @@ function toPolicyRecord(row, uploadId) {
 function fromPolicyRecord(record) {
   return {
     [COLUMNS.status]: record.status,
+    [COLUMNS.planName]: record.plan_name,
     [COLUMNS.policy]: record.policy_number,
     [COLUMNS.issueDate]: record.issue_date,
     FechaPago: record.payment_date,
@@ -145,6 +188,8 @@ function fromPolicyRecord(record) {
     [COLUMNS.phone]: record.phone,
     [COLUMNS.email]: record.email,
     [COLUMNS.premium]: record.annual_premium,
+    [COLUMNS.premiumConverted]: record.converted_premium,
+    "Moneda del Plan": record.plan_currency,
   };
 }
 
@@ -245,7 +290,7 @@ function monthlyEmail(report) {
     text: [
       `Maggie, estos son los cobros semestrales y anuales de ${month}:`,
       "",
-      ...report.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]}`),
+      ...report.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
     ].join("\n"),
   };
 }
@@ -256,7 +301,7 @@ function weeklyEmail(report) {
     text: [
       `Maggie, estos son los cobros no automáticos de esta semana:`,
       "",
-      ...report.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]}`),
+      ...report.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
     ].join("\n"),
   };
 }
