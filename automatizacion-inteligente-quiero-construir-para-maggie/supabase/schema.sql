@@ -26,6 +26,7 @@ create table if not exists public.policies (
   next_birthday text,
   annual_premium text,
   converted_premium text,
+  payment_premium text,
   email text,
   phone text,
   birth_date text,

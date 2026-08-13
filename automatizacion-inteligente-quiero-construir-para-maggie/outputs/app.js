@@ -28,6 +28,13 @@ const frequencyMonths = {
   ANUAL: 12,
 };
 
+const paymentsPerYear = {
+  MENSUAL: 12,
+  TRIMESTRAL: 4,
+  SEMESTRAL: 2,
+  ANUAL: 1,
+};
+
 const automaticMethods = new Set([
   "CARGO AUTOMATICO A TARJ CRED",
   "TDD",
@@ -136,13 +143,17 @@ function formatDate(date) {
   }).format(date);
 }
 
-function formatMoney(value) {
+function parseNumber(value) {
   const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
+  return Number.isFinite(number) ? number : null;
+}
+
+function formatAmount(value) {
+  const number = parseNumber(value);
   if (!Number.isFinite(number) || number === 0) return "";
   return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(number);
 }
 
@@ -155,16 +166,6 @@ function getByAliases(row, aliases) {
   return "";
 }
 
-function getPlanCurrency(row) {
-  return getByAliases(row, [
-    "Moneda del Plan",
-    "Moneda del plan",
-    "Moneda Plan",
-    "Moneda",
-    "Divisa",
-  ]);
-}
-
 function getConvertedPremium(row) {
   return row[columns.premiumConverted] || getByAliases(row, [
     "Prima a pagar convertida",
@@ -172,6 +173,24 @@ function getConvertedPremium(row) {
     "Prima anual emitido (convertido)",
     "Prima anual emitida (convertida)",
   ]);
+}
+
+function getPlanCurrency(row) {
+  const converted = parseNumber(getConvertedPremium(row));
+  const annual = parseNumber(row[columns.premium]);
+  if (!converted || !annual) return "No disponible";
+  const ratio = converted / annual;
+  if (ratio === 1) return "PESOS";
+  if (ratio > 12) return "DÓLARES";
+  if (ratio < 12) return "UDI";
+  return "No disponible";
+}
+
+function getPaymentPremium(row) {
+  const annual = parseNumber(row[columns.premium]);
+  const divisor = paymentsPerYear[normalize(row[columns.frequency])];
+  if (!annual || !divisor) return "";
+  return annual / divisor;
 }
 
 function getBasePaymentDate(row) {
@@ -282,10 +301,10 @@ function render() {
     row[columns.holder],
     row[columns.policy],
     row[columns.planName],
-    getPlanCurrency(row) || "No disponible",
+    getPlanCurrency(row),
     `<span class="pill rose">${row[columns.frequency]}</span>`,
     row[columns.paymentMethod],
-    formatMoney(getConvertedPremium(row)),
+    formatAmount(getPaymentPremium(row)),
   ])).join("") : emptyHtml("No hay pólizas semestrales o anuales para el mes siguiente.", 8);
 
   els.weeklyRows.innerHTML = reports.weekly.length ? reports.weekly.map(({ row, date }) => rowHtml([
@@ -293,10 +312,10 @@ function render() {
     row[columns.holder],
     row[columns.policy],
     row[columns.planName],
-    getPlanCurrency(row) || "No disponible",
+    getPlanCurrency(row),
     `<span class="pill">${row[columns.frequency]}</span>`,
     row[columns.paymentMethod],
-    formatMoney(getConvertedPremium(row)),
+    formatAmount(getPaymentPremium(row)),
   ])).join("") : emptyHtml("No hay cobros no automáticos para esta semana.", 8);
 
   renderAllRows();
@@ -325,11 +344,11 @@ function renderAllRows() {
       row[columns.holder],
       row[columns.policy],
       row[columns.planName],
-      getPlanCurrency(row) || "No disponible",
+      getPlanCurrency(row),
       row[columns.status],
       row[columns.frequency],
       isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
-      formatMoney(getConvertedPremium(row)),
+      formatAmount(getPaymentPremium(row)),
       next ? formatDate(next) : "",
       birthday ? `${String(birthday.day).padStart(2, "0")}/${String(birthday.month + 1).padStart(2, "0")}` : "",
     ]);
@@ -356,14 +375,14 @@ function buildEmailText(type) {
     return [
       `Maggie, estos son los cobros semestrales y anuales de ${new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" }).format(reports.monthlyRange.start)}:`,
       "",
-      ...reports.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[columns.frequency]} | ${row[columns.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
+      ...reports.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.planName]} | ${getPlanCurrency(row)} | ${row[columns.frequency]} | ${row[columns.paymentMethod]} | ${formatAmount(getPaymentPremium(row))}`),
     ].join("\n");
   }
   if (type === "weekly") {
     return [
       `Maggie, estos son los cobros no automáticos de la semana ${formatDate(reports.weeklyStart)} al ${formatDate(reports.weeklyEnd)}:`,
       "",
-      ...reports.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[columns.frequency]} | ${row[columns.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
+      ...reports.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[columns.holder]} | ${row[columns.policy]} | ${row[columns.planName]} | ${getPlanCurrency(row)} | ${row[columns.frequency]} | ${row[columns.paymentMethod]} | ${formatAmount(getPaymentPremium(row))}`),
     ].join("\n");
   }
   return reports.birthdays.map((row) => `Feliz cumpleaños, ${row[columns.holder]}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar. Con cariño, Finanzas Empower.`).join("\n\n");

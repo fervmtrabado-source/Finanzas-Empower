@@ -22,6 +22,13 @@ const FREQUENCY_MONTHS = {
   ANUAL: 12,
 };
 
+const PAYMENTS_PER_YEAR = {
+  MENSUAL: 12,
+  TRIMESTRAL: 4,
+  SEMESTRAL: 2,
+  ANUAL: 1,
+};
+
 const AUTOMATIC_METHODS = new Set([
   "CARGO AUTOMATICO A TARJ CRED",
   "TDD",
@@ -61,13 +68,17 @@ function formatDate(date) {
   }).format(date);
 }
 
-function formatMoney(value) {
+function parseNumber(value) {
   const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
+  return Number.isFinite(number) ? number : null;
+}
+
+function formatAmount(value) {
+  const number = parseNumber(value);
   if (!Number.isFinite(number) || number === 0) return "";
   return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(number);
 }
 
@@ -80,16 +91,6 @@ function getByAliases(row, aliases) {
   return "";
 }
 
-function getPlanCurrency(row) {
-  return getByAliases(row, [
-    "Moneda del Plan",
-    "Moneda del plan",
-    "Moneda Plan",
-    "Moneda",
-    "Divisa",
-  ]);
-}
-
 function getConvertedPremium(row) {
   return row[COLUMNS.premiumConverted] || getByAliases(row, [
     "Prima a pagar convertida",
@@ -97,6 +98,24 @@ function getConvertedPremium(row) {
     "Prima anual emitido (convertido)",
     "Prima anual emitida (convertida)",
   ]);
+}
+
+function getPlanCurrency(row) {
+  const converted = parseNumber(getConvertedPremium(row));
+  const annual = parseNumber(row[COLUMNS.premium]);
+  if (!converted || !annual) return "No disponible";
+  const ratio = converted / annual;
+  if (ratio === 1) return "PESOS";
+  if (ratio > 12) return "DÓLARES";
+  if (ratio < 12) return "UDI";
+  return "No disponible";
+}
+
+function getPaymentPremium(row) {
+  const annual = parseNumber(row[COLUMNS.premium]);
+  const divisor = PAYMENTS_PER_YEAR[normalize(row[COLUMNS.frequency])];
+  if (!annual || !divisor) return "";
+  return annual / divisor;
 }
 
 function parseCsv(text) {
@@ -164,6 +183,7 @@ function toPolicyRecord(row, uploadId) {
     next_birthday: row[COLUMNS.nextBirthday] || "",
     annual_premium: row[COLUMNS.premium] || "",
     converted_premium: getConvertedPremium(row),
+    payment_premium: String(getPaymentPremium(row) || ""),
     email: row[COLUMNS.email] || "",
     phone: row[COLUMNS.phone] || "",
     birth_date: row[COLUMNS.birthDate] || "",
@@ -190,6 +210,7 @@ function fromPolicyRecord(record) {
     [COLUMNS.premium]: record.annual_premium,
     [COLUMNS.premiumConverted]: record.converted_premium,
     "Moneda del Plan": record.plan_currency,
+    PrimaPago: record.payment_premium,
   };
 }
 
@@ -290,7 +311,7 @@ function monthlyEmail(report) {
     text: [
       `Maggie, estos son los cobros semestrales y anuales de ${month}:`,
       "",
-      ...report.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
+      ...report.monthly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row)} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatAmount(getPaymentPremium(row))}`),
     ].join("\n"),
   };
 }
@@ -301,7 +322,7 @@ function weeklyEmail(report) {
     text: [
       `Maggie, estos son los cobros no automáticos de esta semana:`,
       "",
-      ...report.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row) || "Sin moneda"} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatMoney(getConvertedPremium(row))}`),
+      ...report.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row)} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatAmount(getPaymentPremium(row))}`),
     ].join("\n"),
   };
 }
