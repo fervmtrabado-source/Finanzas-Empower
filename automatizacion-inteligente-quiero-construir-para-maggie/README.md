@@ -19,7 +19,7 @@ Asistente digital para que Maggie suba un CSV de p√≥lizas y reciba avisos autom√
 - `outputs/`: app visual para subir CSV y revisar reportes.
 - `netlify/functions/`: funciones de backend y jobs programados.
 - `supabase/schema.sql`: tablas necesarias en Supabase.
-- Resend manda emails.
+- Outlook SMTP manda emails.
 - WhatsApp queda preparado para conectar Twilio/WhatsApp Business en la siguiente fase.
 
 El CSV incluido en el repositorio es una muestra sanitizada. Los CSV reales deben subirse desde la app desplegada y guardarse en Supabase, no en GitHub.
@@ -31,8 +31,11 @@ Configurar en Netlify:
 ```txt
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-RESEND_API_KEY=
-MAIL_FROM=Finanzas Empower <avisos@finanzasempower.com>
+SMTP_HOST=smtp-mail.outlook.com
+SMTP_PORT=587
+SMTP_USER=synka.ia@outlook.com
+SMTP_PASS=
+MAIL_FROM=Synka IA <synka.ia@outlook.com>
 MAGGIE_EMAIL=
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=

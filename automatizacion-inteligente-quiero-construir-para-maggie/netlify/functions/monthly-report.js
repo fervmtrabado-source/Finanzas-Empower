@@ -1,7 +1,7 @@
 const { schedule } = require("@netlify/functions");
 const { buildReports, daysUntilNextMonth, monthlyEmail } = require("./lib/policies");
 const { getLatestPolicies, logNotification } = require("./lib/supabase");
-const { sendEmail } = require("./lib/resend");
+const { sendEmail } = require("./lib/email");
 
 async function handler() {
   try {
