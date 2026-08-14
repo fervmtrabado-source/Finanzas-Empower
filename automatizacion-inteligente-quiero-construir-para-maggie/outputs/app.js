@@ -143,6 +143,17 @@ function formatDate(date) {
   }).format(date);
 }
 
+function todayInputValue() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${byType.year}-${byType.month}-${byType.day}`;
+}
+
 function parseNumber(value) {
   const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
   return Number.isFinite(number) ? number : null;
@@ -459,6 +470,15 @@ async function loadCsvText(text, name) {
   render();
 }
 
+async function loadRows(rows, name, uploadedAt) {
+  state.rows = rows;
+  state.sourceName = name;
+  const uploaded = uploadedAt ? ` Última actualización: ${formatDate(new Date(uploadedAt))}.` : "";
+  els.fileStatus.textContent = `${name}: ${rows.length} registros guardados.${uploaded}`;
+  els.syncStatus.textContent = "Información cargada desde la última actualización guardada. Solo sube un CSV cuando quieras reemplazarla.";
+  render();
+}
+
 async function syncCsvToBackend(text, name) {
   els.syncStatus.textContent = "Guardando CSV para los avisos automáticos...";
   try {
@@ -473,6 +493,15 @@ async function syncCsvToBackend(text, name) {
   } catch (error) {
     els.syncStatus.textContent = "Vista local activa. Cuando esté desplegada con Supabase, el CSV se guardará para los avisos automáticos.";
   }
+}
+
+async function loadLatestSavedData() {
+  const response = await fetch("/.netlify/functions/latest-policies");
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error || "No se pudo cargar la última información guardada.");
+  if (!body.rows?.length || !body.upload) return false;
+  await loadRows(body.rows, body.upload.file_name || "Último CSV guardado", body.upload.uploaded_at);
+  return true;
 }
 
 function setupEvents() {
@@ -502,7 +531,13 @@ function setupEvents() {
 
 async function boot() {
   setupEvents();
-  els.workDate.value = "2026-08-12";
+  els.workDate.value = todayInputValue();
+  try {
+    if (await loadLatestSavedData()) return;
+  } catch (error) {
+    els.syncStatus.textContent = "No pude leer Supabase en este momento. Muestro la demo hasta que subas o recargues el CSV.";
+  }
+
   try {
     const response = await fetch("data/muestra-polizas-sanitizada.csv");
     await loadCsvText(await response.text(), "muestra-polizas-sanitizada.csv");

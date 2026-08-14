@@ -5,6 +5,8 @@ Asistente digital para que Maggie suba un CSV de pólizas y reciba avisos autom�
 ## Qué hace
 
 - Lee el CSV de pólizas.
+- Al abrir la app, carga la última versión guardada en Supabase.
+- Maggie solo necesita abrir la app cuando quiera reemplazar o revisar el CSV.
 - Conserva solo pólizas con estatus exacto `En Vigor`.
 - Calcula fechas de cobro con `Fecha de pago` si existe; si no, usa `Fecha de emisión`.
 - Reporte mensual: pólizas `SEMESTRAL` y `ANUAL` que cobran el mes siguiente.
@@ -45,3 +47,5 @@ Las variables de Twilio son opcionales hasta activar WhatsApp real.
 - `weekly-report`: lunes a las 8:00 AM de Ciudad de México.
 - `monthly-report`: diario a las 8:00 AM de Ciudad de México, pero solo envía cuando falten 7 días para iniciar el mes siguiente.
 - `birthday-report`: diario a las 9:00 AM de Ciudad de México.
+
+Los jobs corren en Netlify aunque nadie abra la app. Usan la última carga guardada en Supabase.
