@@ -82,6 +82,14 @@ function formatAmount(value) {
   }).format(number);
 }
 
+function formatIsoDate(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function getByAliases(row, aliases) {
   const keys = Object.keys(row);
   for (const alias of aliases) {
@@ -383,6 +391,11 @@ module.exports = {
   toPolicyRecord,
   buildReports,
   daysUntilNextMonth,
+  formatAmount,
+  formatDate,
+  formatIsoDate,
+  getPaymentPremium,
+  getPlanCurrency,
   monthlyEmail,
   weeklyEmail,
   birthdayText,

@@ -17,10 +17,10 @@ Asistente digital para que Maggie suba un CSV de pólizas y reciba avisos autom�
 ## Arquitectura
 
 - `outputs/`: app visual para subir CSV y revisar reportes.
-- `netlify/functions/`: funciones de backend y jobs programados.
+- `netlify/functions/`: funciones de backend y endpoints JSON para Make.
 - `supabase/schema.sql`: tablas necesarias en Supabase.
-- Outlook SMTP manda emails.
-- WhatsApp queda preparado para conectar Twilio/WhatsApp Business en la siguiente fase.
+- Netlify prepara datos JSON para Make.
+- Make manda los correos desde `synka.ia@outlook.com`.
 
 El CSV incluido en el repositorio es una muestra sanitizada. Los CSV reales deben subirse desde la app desplegada y guardarse en Supabase, no en GitHub.
 
@@ -31,24 +31,56 @@ Configurar en Netlify:
 ```txt
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-SMTP_HOST=smtp-mail.outlook.com
-SMTP_PORT=587
-SMTP_USER=synka.ia@outlook.com
-SMTP_PASS=
-MAIL_FROM=Synka IA <synka.ia@outlook.com>
-MAGGIE_EMAIL=
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-MAGGIE_WHATSAPP_TO=whatsapp:+52...
+MAKE_SHARED_SECRET=
 ```
 
-Las variables de Twilio son opcionales hasta activar WhatsApp real.
+`MAKE_SHARED_SECRET` es opcional técnicamente, pero recomendado. Si existe, Make debe enviarlo en el header `x-make-secret`.
 
-## Jobs
+## Endpoints para Make
 
-- `weekly-report`: lunes a las 8:00 AM de Ciudad de México.
-- `monthly-report`: diario a las 8:00 AM de Ciudad de México, pero solo envía cuando falten 7 días para iniciar el mes siguiente.
-- `birthday-report`: diario a las 9:00 AM de Ciudad de México.
+Make debe leer estos endpoints y usar el JSON para enviar correos:
 
-Los jobs corren en Netlify aunque nadie abra la app. Usan la última carga guardada en Supabase.
+```txt
+https://intelligencefe.netlify.app/.netlify/functions/weekly-data
+https://intelligencefe.netlify.app/.netlify/functions/monthly-data
+https://intelligencefe.netlify.app/.netlify/functions/birthday-data
+```
+
+Primera prueba:
+
+```txt
+De: synka.ia@outlook.com
+Para: fvargasmena@hotmail.com
+```
+
+Para pruebas se puede agregar `?date=YYYY-MM-DD`. Si `MAKE_SHARED_SECRET` está configurado, enviar:
+
+```txt
+x-make-secret: valor-del-secreto
+```
+
+Cada endpoint devuelve `count`, `subject`, `text` e `items`. Los campos clave en `items` son:
+
+```txt
+payment_date
+holder
+policy_number
+plan_name
+currency
+frequency
+payment_method
+premium_due
+premium_due_label
+email
+phone
+```
+
+`birthday-data` devuelve una lista deduplicada por contratante y agrega `message` para cada persona.
+
+## Escenarios en Make
+
+- Semanal: cada lunes, leer `weekly-data`, filtrar `count > 0`, enviar `subject` y `text`.
+- Mensual: diario, leer `monthly-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `text`.
+- Cumpleaños: diario, leer `birthday-data`, filtrar `count > 0`, enviar `subject` y `text`.
+
+Los escenarios corren en Make aunque nadie abra la app. Los endpoints usan la última carga guardada en Supabase.
