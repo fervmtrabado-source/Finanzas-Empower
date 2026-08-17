@@ -77,6 +77,78 @@ function birthdayItem(row) {
   };
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function birthdayHtml(report) {
+  const cards = report.birthdays.map((row) => {
+    const holder = escapeHtml(row[COLUMNS.holder]);
+    const insured = escapeHtml(row[COLUMNS.insured]);
+    const phone = escapeHtml(row[COLUMNS.phone]);
+    const email = escapeHtml(row[COLUMNS.email]);
+
+    return `
+      <tr>
+        <td style="padding: 0 0 18px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eadfc9; border-radius: 14px; overflow: hidden; background: #fffaf0;">
+            <tr>
+              <td style="padding: 24px 26px; background: #7737b8; color: #ffffff;">
+                <div style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">Cumpleaños de hoy</div>
+                <div style="font-size: 30px; line-height: 1.15; font-weight: 700; margin-top: 8px;">${holder}</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 26px; color: #2d2438;">
+                <p style="font-size: 17px; line-height: 1.55; margin: 0 0 18px;">
+                  Feliz cumpleaños, ${holder}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar.
+                </p>
+                <p style="font-size: 15px; line-height: 1.5; margin: 0 0 22px; color: #6c6078;">
+                  Con cariño,<br>
+                  <strong>Finanzas Empower</strong>
+                </p>
+                <table role="presentation" cellspacing="0" cellpadding="0" style="font-size: 13px; color: #5b5065;">
+                  ${insured ? `<tr><td style="padding: 3px 12px 3px 0; font-weight: 700;">Asegurado</td><td style="padding: 3px 0;">${insured}</td></tr>` : ""}
+                  ${phone ? `<tr><td style="padding: 3px 12px 3px 0; font-weight: 700;">Telefono</td><td style="padding: 3px 0;">${phone}</td></tr>` : ""}
+                  ${email ? `<tr><td style="padding: 3px 12px 3px 0; font-weight: 700;">Email</td><td style="padding: 3px 0;">${email}</td></tr>` : ""}
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  return `
+    <!doctype html>
+    <html>
+      <body style="margin: 0; padding: 0; background: #f4f1ea; font-family: Arial, Helvetica, sans-serif;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #f4f1ea;">
+          <tr>
+            <td align="center" style="padding: 28px 14px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 680px;">
+                <tr>
+                  <td style="padding: 0 0 18px; color: #2d2438;">
+                    <div style="font-size: 14px; letter-spacing: 1.2px; text-transform: uppercase; color: #7737b8; font-weight: 700;">Finanzas Empower</div>
+                    <h1 style="font-size: 26px; line-height: 1.25; margin: 8px 0 6px;">Cumpleaños para celebrar hoy</h1>
+                    <p style="font-size: 15px; line-height: 1.5; margin: 0; color: #6c6078;">Lista deduplicada por contratante.</p>
+                  </td>
+                </tr>
+                ${cards}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
 async function getReport(event) {
   const unauthorized = authorizeMake(event);
   if (unauthorized) return { unauthorized };
@@ -143,6 +215,7 @@ async function birthdayData(event) {
     count: result.report.birthdays.length,
     subject: "Cumpleaños de hoy",
     text: birthdayText(result.report),
+    html: birthdayHtml(result.report),
     items: result.report.birthdays.map(birthdayItem),
   });
 }
