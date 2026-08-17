@@ -66,6 +66,7 @@ function paymentItem({ row, date }) {
 }
 
 function birthdayItem(row) {
+  const firstName = getFirstName(row[COLUMNS.holder]);
   return {
     holder: row[COLUMNS.holder],
     insured: row[COLUMNS.insured],
@@ -73,7 +74,7 @@ function birthdayItem(row) {
     next_birthday: row[COLUMNS.nextBirthday],
     email: row[COLUMNS.email] || "",
     phone: row[COLUMNS.phone] || "",
-    message: `Feliz cumpleaños, ${row[COLUMNS.holder]}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar. Con cariño, Finanzas Empower.`,
+    message: `Feliz cumpleaños, ${firstName}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar. Con cariño, Maggie Hernández. Finanzas Empower.`,
   };
 }
 
@@ -85,37 +86,59 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+function getFirstName(value) {
+  return String(value || "").trim().split(/\s+/)[0] || "";
+}
+
 function birthdayHtml(report) {
+  const logoUrl = "https://intelligencefe.netlify.app/assets/finanzas-empower-logo.jpg";
   const cards = report.birthdays.map((row) => {
     const holder = escapeHtml(row[COLUMNS.holder]);
-    const insured = escapeHtml(row[COLUMNS.insured]);
-    const phone = escapeHtml(row[COLUMNS.phone]);
-    const email = escapeHtml(row[COLUMNS.email]);
+    const firstName = escapeHtml(getFirstName(row[COLUMNS.holder]));
 
     return `
       <tr>
-        <td style="padding: 0 0 18px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eadfc9; border-radius: 14px; overflow: hidden; background: #fffaf0;">
+        <td align="center" style="padding: 0 0 22px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 620px; border: 1px solid #eadfc9; border-radius: 18px; overflow: hidden; background: #fffaf0;">
             <tr>
-              <td style="padding: 24px 26px; background: #7737b8; color: #ffffff;">
-                <div style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">Cumpleaños de hoy</div>
-                <div style="font-size: 30px; line-height: 1.15; font-weight: 700; margin-top: 8px;">${holder}</div>
+              <td align="center" style="padding: 26px 26px 10px; background: #fffaf0;">
+                <img src="${logoUrl}" width="150" alt="Finanzas Empower" style="display: block; width: 150px; max-width: 70%; height: auto; margin: 0 auto;">
               </td>
             </tr>
             <tr>
-              <td style="padding: 24px 26px; color: #2d2438;">
-                <p style="font-size: 17px; line-height: 1.55; margin: 0 0 18px;">
-                  Feliz cumpleaños, ${holder}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar.
-                </p>
-                <p style="font-size: 15px; line-height: 1.5; margin: 0 0 22px; color: #6c6078;">
-                  Con cariño,<br>
-                  <strong>Finanzas Empower</strong>
-                </p>
-                <table role="presentation" cellspacing="0" cellpadding="0" style="font-size: 13px; color: #5b5065;">
-                  ${insured ? `<tr><td style="padding: 3px 12px 3px 0; font-weight: 700;">Asegurado</td><td style="padding: 3px 0;">${insured}</td></tr>` : ""}
-                  ${phone ? `<tr><td style="padding: 3px 12px 3px 0; font-weight: 700;">Telefono</td><td style="padding: 3px 0;">${phone}</td></tr>` : ""}
-                  ${email ? `<tr><td style="padding: 3px 12px 3px 0; font-weight: 700;">Email</td><td style="padding: 3px 0;">${email}</td></tr>` : ""}
+              <td align="center" style="padding: 0 24px 10px; background: #fffaf0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td align="left" style="font-size: 0; line-height: 0; padding: 4px 0 12px;">
+                      <span style="display: inline-block; width: 12px; height: 12px; background: #7a35bc; border-radius: 50%; margin: 0 8px 0 0;">&nbsp;</span>
+                      <span style="display: inline-block; width: 36px; height: 6px; background: #f1b82d; border-radius: 8px; margin: 0 8px 4px 0;">&nbsp;</span>
+                      <span style="display: inline-block; width: 10px; height: 10px; background: #1fb7a6; border-radius: 2px; margin: 0 8px 0 0;">&nbsp;</span>
+                      <span style="display: inline-block; width: 28px; height: 6px; background: #e85d75; border-radius: 8px; margin: 0 8px 4px 0;">&nbsp;</span>
+                    </td>
+                    <td align="right" style="font-size: 0; line-height: 0; padding: 4px 0 12px;">
+                      <span style="display: inline-block; width: 28px; height: 6px; background: #1fb7a6; border-radius: 8px; margin: 0 0 4px 8px;">&nbsp;</span>
+                      <span style="display: inline-block; width: 10px; height: 10px; background: #f1b82d; border-radius: 2px; margin: 0 0 0 8px;">&nbsp;</span>
+                      <span style="display: inline-block; width: 12px; height: 12px; background: #e85d75; border-radius: 50%; margin: 0 0 0 8px;">&nbsp;</span>
+                    </td>
+                  </tr>
                 </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 18px 28px 22px; background: #7737b8; color: #ffffff;">
+                <div style="font-size: 31px; line-height: 1.14; font-weight: 700; text-align: center;">${holder}</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 28px 30px 30px; color: #2d2438;">
+                <p style="font-size: 20px; line-height: 1.55; margin: 0 0 24px; text-align: center;">
+                  Feliz cumpleaños, ${firstName}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar.
+                </p>
+                <p style="font-size: 16px; line-height: 1.55; margin: 0; color: #6c6078; text-align: center;">
+                  Con cariño,<br>
+                  <strong style="color: #2d2438;">Maggie Hernández</strong><br>
+                  Finanzas Empower
+                </p>
               </td>
             </tr>
           </table>
@@ -130,15 +153,8 @@ function birthdayHtml(report) {
       <body style="margin: 0; padding: 0; background: #f4f1ea; font-family: Arial, Helvetica, sans-serif;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #f4f1ea;">
           <tr>
-            <td align="center" style="padding: 28px 14px;">
+            <td align="center" style="padding: 18px 10px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 680px;">
-                <tr>
-                  <td style="padding: 0 0 18px; color: #2d2438;">
-                    <div style="font-size: 14px; letter-spacing: 1.2px; text-transform: uppercase; color: #7737b8; font-weight: 700;">Finanzas Empower</div>
-                    <h1 style="font-size: 26px; line-height: 1.25; margin: 8px 0 6px;">Cumpleaños para celebrar hoy</h1>
-                    <p style="font-size: 15px; line-height: 1.5; margin: 0; color: #6c6078;">Lista deduplicada por contratante.</p>
-                  </td>
-                </tr>
                 ${cards}
               </table>
             </td>
