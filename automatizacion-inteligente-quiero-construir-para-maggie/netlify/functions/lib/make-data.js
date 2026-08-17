@@ -92,53 +92,39 @@ function getFirstName(value) {
 
 function birthdayHtml(report) {
   const logoUrl = "https://intelligencefe.netlify.app/assets/finanzas-empower-logo.jpg";
+  const backgroundUrl = "https://intelligencefe.netlify.app/assets/birthday-card-bg.png";
   const cards = report.birthdays.map((row) => {
     const holder = escapeHtml(row[COLUMNS.holder]);
-    const firstName = escapeHtml(getFirstName(row[COLUMNS.holder]));
 
     return `
       <tr>
         <td align="center" style="padding: 0 0 22px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 620px; border: 1px solid #eadfc9; border-radius: 18px; overflow: hidden; background: #fffaf0;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 620px; min-height: 775px; border: 1px solid #d7b56d; border-radius: 18px; overflow: hidden; background-color: #f6fbff; background-image: url('${backgroundUrl}'); background-size: cover; background-position: center top;">
             <tr>
-              <td align="center" style="padding: 26px 26px 10px; background: #fffaf0;">
-                <img src="${logoUrl}" width="150" alt="Finanzas Empower" style="display: block; width: 150px; max-width: 70%; height: auto; margin: 0 auto;">
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding: 0 24px 10px; background: #fffaf0;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td align="left" style="font-size: 0; line-height: 0; padding: 4px 0 12px;">
-                      <span style="display: inline-block; width: 12px; height: 12px; background: #7a35bc; border-radius: 50%; margin: 0 8px 0 0;">&nbsp;</span>
-                      <span style="display: inline-block; width: 36px; height: 6px; background: #f1b82d; border-radius: 8px; margin: 0 8px 4px 0;">&nbsp;</span>
-                      <span style="display: inline-block; width: 10px; height: 10px; background: #1fb7a6; border-radius: 2px; margin: 0 8px 0 0;">&nbsp;</span>
-                      <span style="display: inline-block; width: 28px; height: 6px; background: #e85d75; border-radius: 8px; margin: 0 8px 4px 0;">&nbsp;</span>
-                    </td>
-                    <td align="right" style="font-size: 0; line-height: 0; padding: 4px 0 12px;">
-                      <span style="display: inline-block; width: 28px; height: 6px; background: #1fb7a6; border-radius: 8px; margin: 0 0 4px 8px;">&nbsp;</span>
-                      <span style="display: inline-block; width: 10px; height: 10px; background: #f1b82d; border-radius: 2px; margin: 0 0 0 8px;">&nbsp;</span>
-                      <span style="display: inline-block; width: 12px; height: 12px; background: #e85d75; border-radius: 50%; margin: 0 0 0 8px;">&nbsp;</span>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 18px 28px 22px; background: #7737b8; color: #ffffff;">
-                <div style="font-size: 31px; line-height: 1.14; font-weight: 700; text-align: center;">${holder}</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 28px 30px 30px; color: #2d2438;">
-                <p style="font-size: 20px; line-height: 1.55; margin: 0 0 24px; text-align: center;">
-                  Feliz cumpleaños, ${firstName}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar.
+              <td align="center" style="padding: 68px 34px 52px;">
+                <img src="${logoUrl}" width="300" alt="Finanzas Empower by Maggie Hernández" style="display: block; width: 300px; max-width: 78%; height: auto; margin: 0 auto 28px;">
+                <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 54px; line-height: 0.98; font-style: italic; color: #082b57; margin: 0 0 24px;">
+                  ¡Feliz<br>cumpleaños!
+                </div>
+                <div style="font-size: 22px; line-height: 1.25; letter-spacing: 1.5px; text-transform: uppercase; color: #2f7eb8; font-weight: 700; margin: 0 0 26px;">
+                  ${holder}
+                </div>
+                <div style="width: 140px; height: 1px; background: #76b7e3; margin: 0 auto 24px;">&nbsp;</div>
+                <p style="font-size: 20px; line-height: 1.45; margin: 0 auto 18px; max-width: 460px; color: #09264f;">
+                  Hoy celebramos tu vida y te deseamos salud, alegría y tranquilidad.
                 </p>
-                <p style="font-size: 16px; line-height: 1.55; margin: 0; color: #6c6078; text-align: center;">
-                  Con cariño,<br>
-                  <strong style="color: #2d2438;">Maggie Hernández</strong><br>
+                <p style="font-size: 20px; line-height: 1.45; margin: 0 auto 30px; max-width: 460px; color: #09264f;">
+                  Gracias por permitirnos acompañarte en la protección de lo que más importa.
+                </p>
+                <p style="font-size: 18px; line-height: 1.45; margin: 0; color: #09264f;">
+                  Con cariño,
+                </p>
+                <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 35px; line-height: 1.1; font-style: italic; color: #082b57; margin: 4px 0 0;">
+                  Maggie Hernández
+                </div>
+                <div style="font-size: 21px; line-height: 1.25; color: #2f7eb8; font-weight: 700; margin-top: 4px;">
                   Finanzas Empower
-                </p>
+                </div>
               </td>
             </tr>
           </table>
