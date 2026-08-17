@@ -146,9 +146,14 @@ function getPaymentPremium(row) {
   return annual / divisor;
 }
 
+function hasSinglePremiumText(value) {
+  const text = normalize(value);
+  return text.includes("PRIMA UNICA") || /\bPU\b/.test(text);
+}
+
 function isSinglePremium(row) {
-  return normalize(row[COLUMNS.planName]).includes("PRIMA UNICA") ||
-    normalize(row[COLUMNS.frequency]).includes("PRIMA UNICA");
+  return hasSinglePremiumText(row[COLUMNS.planName]) ||
+    hasSinglePremiumText(row[COLUMNS.frequency]);
 }
 
 function isReportablePolicy(row) {

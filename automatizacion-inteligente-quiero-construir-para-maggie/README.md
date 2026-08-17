@@ -7,7 +7,8 @@ Asistente digital para que Maggie suba un CSV de pólizas y reciba avisos autom�
 - Lee el CSV de pólizas.
 - Al abrir la app, carga la última versión guardada en Supabase.
 - Maggie solo necesita abrir la app cuando quiera reemplazar o revisar el CSV.
-- Conserva solo pólizas con estatus exacto `En Vigor`.
+- Conserva solo pólizas con estatus exacto `En Vigor`; por eso excluye `En Vigor sin Pago de Primas`.
+- Excluye planes/frecuencias de prima única, incluyendo textos como `PRIMA UNICA`, `PRIMA ÚNICA` o `PU`.
 - Calcula fechas de cobro con `Fecha de pago` si existe; si no, usa `Fecha de emisión`.
 - Reporte mensual: pólizas `SEMESTRAL` y `ANUAL` que cobran el mes siguiente.
 - Reporte semanal: pólizas que cobran esa semana y que no son cargo automático.
