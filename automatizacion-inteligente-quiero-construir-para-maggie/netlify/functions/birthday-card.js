@@ -139,31 +139,31 @@ exports.handler = async (event) => {
       const logoHeight = logoWidth * (logo.naturalHeight / logo.naturalWidth);
       ctx.drawImage(logo, (canvas.width - logoWidth) / 2, 138, logoWidth, logoHeight);
 
-      drawCenteredLines(["¡Feliz", "cumpleaños!"], 548, 112, 112, "#082b57", (size) => "italic " + size + "px Georgia, serif", 760);
+      drawCenteredLines(["¡Feliz", "cumpleaños!"], 500, 112, 112, "#082b57", (size) => "italic " + size + "px Georgia, serif", 760);
 
       const displayName = name.toUpperCase();
-      const nameSize = fitText(displayName, 760, 45, 32, (size) => "700 " + size + "px Arial, sans-serif");
+      const nameSize = fitText(displayName, 810, 54, 36, (size) => "700 " + size + "px Arial, sans-serif");
       ctx.font = "700 " + nameSize + "px Arial, sans-serif";
       ctx.fillStyle = "#2f7eb8";
       ctx.textAlign = "center";
-      ctx.fillText(displayName, canvas.width / 2, 785);
+      ctx.fillText(displayName, canvas.width / 2, 742);
 
       ctx.strokeStyle = "#76b7e3";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(410, 842);
-      ctx.lineTo(712, 842);
+      ctx.moveTo(390, 800);
+      ctx.lineTo(732, 800);
       ctx.stroke();
       ctx.fillStyle = "#76b7e3";
       ctx.beginPath();
-      ctx.arc(canvas.width / 2, 842, 6, 0, Math.PI * 2);
+      ctx.arc(canvas.width / 2, 800, 6, 0, Math.PI * 2);
       ctx.fill();
 
-      drawCenteredLines(["Hoy celebramos tu vida y te", "deseamos salud, alegría y tranquilidad."], 935, 37, 48, "#09264f", (size) => "400 " + size + "px Arial, sans-serif", 760);
-      drawCenteredLines(["Gracias por permitirnos acompañarte", "en la protección de lo que más importa."], 1085, 37, 48, "#09264f", (size) => "400 " + size + "px Arial, sans-serif", 760);
-      drawCenteredLines(["Con cariño,"], 1215, 32, 40, "#09264f", (size) => "400 " + size + "px Arial, sans-serif");
-      drawCenteredLines(["Maggie Hernández"], 1272, 56, 58, "#082b57", (size) => "italic " + size + "px Georgia, serif", 760);
-      drawCenteredLines(["Finanzas Empower"], 1328, 36, 42, "#2f7eb8", (size) => "700 " + size + "px Arial, sans-serif");
+      drawCenteredLines(["Hoy celebramos tu vida y te", "deseamos salud, alegría y tranquilidad."], 905, 43, 55, "#09264f", (size) => "400 " + size + "px Arial, sans-serif", 810);
+      drawCenteredLines(["Gracias por permitirnos acompañarte", "en la protección de lo que más importa."], 1062, 43, 55, "#09264f", (size) => "400 " + size + "px Arial, sans-serif", 835);
+      drawCenteredLines(["Con cariño,"], 1182, 34, 40, "#09264f", (size) => "400 " + size + "px Arial, sans-serif");
+      drawCenteredLines(["Maggie Hernández"], 1236, 55, 58, "#082b57", (size) => "italic " + size + "px Georgia, serif", 760);
+      drawCenteredLines(["Finanzas Empower"], 1292, 35, 42, "#2f7eb8", (size) => "700 " + size + "px Arial, sans-serif");
 
       download.href = canvas.toDataURL("image/png");
     }
