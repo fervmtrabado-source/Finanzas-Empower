@@ -60,7 +60,7 @@ Para pruebas se puede agregar `?date=YYYY-MM-DD`. Si `MAKE_SHARED_SECRET` está 
 x-make-secret: valor-del-secreto
 ```
 
-Cada endpoint devuelve `count`, `subject`, `text` e `items`. `birthday-data` también devuelve `html` para mandar una tarjeta visual por correo. Los campos clave en `items` son:
+Cada endpoint devuelve `count`, `subject`, `text` e `items`. `birthday-data` también devuelve `html` para mandar a Maggie un correo de revisión con botones para abrir una tarjeta visual por persona. Los campos clave en `items` son:
 
 ```txt
 payment_date
@@ -76,12 +76,12 @@ email
 phone
 ```
 
-`birthday-data` devuelve una lista deduplicada por contratante, agrega `message` para cada persona y agrega `html` para usarlo como cuerpo visual del correo.
+`birthday-data` devuelve una lista deduplicada por contratante, agrega `first_name`, `message` y `card_url` para cada persona. `card_url` abre una tarjeta visual lista para copiar o descargar como PNG y mandarla por WhatsApp.
 
 ## Escenarios en Make
 
 - Semanal: cada lunes, leer `weekly-data`, filtrar `count > 0`, enviar `subject` y `text`.
 - Mensual: diario, leer `monthly-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `text`.
-- Cumpleaños: diario, leer `birthday-data`, filtrar `count > 0`, enviar `subject` y `html`.
+- Cumpleaños: diario, leer `birthday-data`, filtrar `count > 0`, enviar `subject` y `html` a Maggie para que revise las tarjetas y las comparta por WhatsApp.
 
 Los escenarios corren en Make aunque nadie abra la app. Los endpoints usan la última carga guardada en Supabase.

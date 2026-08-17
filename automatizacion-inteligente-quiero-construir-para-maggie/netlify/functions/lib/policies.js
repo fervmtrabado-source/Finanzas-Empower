@@ -385,8 +385,9 @@ function weeklyEmail(report) {
 }
 
 function birthdayText(report) {
+  const firstName = (value) => String(value || "").trim().split(/\s+/)[0] || "";
   return report.birthdays.map((row) =>
-    `Hoy cumple años ${row[COLUMNS.holder]}. Tarjeta sugerida: Feliz cumpleaños, ${row[COLUMNS.holder]}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar. Con cariño, Finanzas Empower.`
+    `Hoy cumple años ${row[COLUMNS.holder]}. Mensaje sugerido: Feliz cumpleaños, ${firstName(row[COLUMNS.holder])}. Que este nuevo año llegue con salud, calma y muchas razones para celebrar. Con cariño, Maggie Hernández. Finanzas Empower.`
   ).join("\n\n");
 }
 
