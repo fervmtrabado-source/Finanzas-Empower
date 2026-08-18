@@ -29,6 +29,7 @@ function toRawPolicy(policy) {
     "Contratante": policy.holder,
     "Persona asegurada principal": policy.insured,
     "Información adicional - Próximo cumpleaños": policy.next_birthday,
+    "Suma asegurada": policy.sum_assured,
     "Prima anual emitido (convertido)": policy.converted_premium,
     "Prima anual emitido": policy.annual_premium,
     "Información adicional - Email de preferencia": policy.email,

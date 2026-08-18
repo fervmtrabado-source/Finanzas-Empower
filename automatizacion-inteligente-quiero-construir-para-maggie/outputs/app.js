@@ -17,6 +17,7 @@ const columns = {
   birthDate: "Información adicional - Fecha de nacimiento",
   phone: "Información adicional - Teléfono de preferencia",
   email: "Información adicional - Email de preferencia",
+  sumAssured: "Suma asegurada",
   premium: "Prima anual emitido",
   premiumConverted: "Prima anual emitido (convertido)",
 };
@@ -204,6 +205,14 @@ function getConvertedPremium(row) {
     "Prima anual emitido (convertido)",
     "Prima anual emitida (convertida)",
   ]) || getByHeaderPattern(row, ["prima", "convert"]);
+}
+
+function getSumAssured(row) {
+  return row[columns.sumAssured] || getByAliases(row, [
+    "Suma asegurada",
+    "Suma asegurada emitida",
+    "Suma asegurada contratada",
+  ]) || getByHeaderPattern(row, ["suma", "asegurada"], ["convert"]);
 }
 
 function getPlanCurrency(row) {
@@ -400,6 +409,7 @@ function renderAllRows() {
       row[columns.policy],
       row[columns.planName],
       getPlanCurrency(row),
+      formatAmount(getSumAssured(row)),
       row[columns.status],
       row[columns.frequency],
       isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
@@ -407,7 +417,7 @@ function renderAllRows() {
       next ? formatDate(next) : "",
       birthday ? `${String(birthday.day).padStart(2, "0")}/${String(birthday.month + 1).padStart(2, "0")}` : "",
     ]);
-  }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 10);
+  }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 11);
 }
 
 function renderBirthdays(rows) {
