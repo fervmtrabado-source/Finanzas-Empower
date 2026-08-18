@@ -35,4 +35,27 @@ async function logNotification(entry) {
   });
 }
 
-module.exports = { supabaseFetch, getLatestPolicies, logNotification };
+async function getMonthlyContactTasks(period) {
+  return supabaseFetch(`monthly_contact_tasks?select=*&period=eq.${encodeURIComponent(period)}`);
+}
+
+async function markMonthlyContacted(task) {
+  return supabaseFetch("monthly_contact_tasks?on_conflict=task_key", {
+    method: "POST",
+    headers: {
+      Prefer: "resolution=merge-duplicates,return=representation",
+    },
+    body: JSON.stringify({
+      ...task,
+      contacted_at: new Date().toISOString(),
+    }),
+  });
+}
+
+module.exports = {
+  supabaseFetch,
+  getLatestPolicies,
+  getMonthlyContactTasks,
+  logNotification,
+  markMonthlyContacted,
+};

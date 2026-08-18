@@ -319,6 +319,12 @@ function nextMonthRange(date) {
   return { start, end };
 }
 
+function currentMonthRange(date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+  return { start, end };
+}
+
 function daysUntilNextMonth(date) {
   const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
   const current = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -361,6 +367,16 @@ function buildReports(policyRecords, workDate = new Date()) {
   return { activeRows, monthly, weekly, birthdays, monthlyRange, weeklyStart, weeklyEnd };
 }
 
+function buildMonthlyForRange(policyRecords, range) {
+  const rows = policyRecords.map(fromPolicyRecord);
+  const activeRows = rows.filter(isReportablePolicy);
+  return activeRows.flatMap((row) => {
+    const frequency = normalize(row[COLUMNS.frequency]);
+    if (frequency !== "SEMESTRAL" && frequency !== "ANUAL") return [];
+    return getOccurrencesInRange(row, range.start, range.end).map((date) => ({ row, date }));
+  }).sort((a, b) => a.date - b.date || a.row[COLUMNS.holder].localeCompare(b.row[COLUMNS.holder]));
+}
+
 function monthlyEmail(report) {
   const month = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" }).format(report.monthlyRange.start);
   return {
@@ -396,6 +412,8 @@ module.exports = {
   parseCsv,
   toPolicyRecord,
   buildReports,
+  buildMonthlyForRange,
+  currentMonthRange,
   daysUntilNextMonth,
   formatAmount,
   formatDate,

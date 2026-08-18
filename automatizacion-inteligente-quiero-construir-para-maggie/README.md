@@ -11,6 +11,7 @@ Asistente digital para que Maggie suba un CSV de pólizas y reciba avisos autom�
 - Excluye planes/frecuencias de prima única, incluyendo textos como `PRIMA UNICA`, `PRIMA ÚNICA` o `PU`.
 - Calcula fechas de cobro con `Fecha de pago` si existe; si no, usa `Fecha de emisión`.
 - Reporte mensual: pólizas `SEMESTRAL` y `ANUAL` que cobran el mes siguiente.
+- Seguimiento mensual: permite marcar clientes como contactados y enviar pendientes cada viernes.
 - Reporte semanal: pólizas que cobran esa semana y que no son cargo automático.
 - Cargo automático: `CARGO AUTOMATICO A TARJ CRED` y `TDD`.
 - Cumpleaños diario: detecta cumpleaños del día.
@@ -44,6 +45,7 @@ Make debe leer estos endpoints y usar el JSON para enviar correos:
 ```txt
 https://intelligencefe.netlify.app/.netlify/functions/weekly-data
 https://intelligencefe.netlify.app/.netlify/functions/monthly-data
+https://intelligencefe.netlify.app/.netlify/functions/monthly-pending-data
 https://intelligencefe.netlify.app/.netlify/functions/birthday-data
 ```
 
@@ -76,12 +78,15 @@ email
 phone
 ```
 
+`monthly-data` agrega `contact_url` por póliza mensual para marcar al cliente como contactado. `monthly-pending-data` devuelve solo los clientes del mes actual que todavía no están marcados como contactados.
+
 `birthday-data` devuelve una lista deduplicada por contratante, agrega `first_name`, `message` y `card_url` para cada persona. `card_url` abre una tarjeta visual lista para copiar o descargar como PNG y mandarla por WhatsApp.
 
 ## Escenarios en Make
 
 - Semanal: cada lunes, leer `weekly-data`, filtrar `count > 0`, enviar `subject` y `text`.
-- Mensual: diario, leer `monthly-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `text`.
+- Mensual: diario, leer `monthly-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `html` o `text`.
+- Pendientes mensuales: cada viernes, leer `monthly-pending-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `html` o `text`.
 - Cumpleaños: diario, leer `birthday-data`, filtrar `count > 0`, enviar `subject` y `html` a Maggie para que revise las tarjetas y las comparta por WhatsApp.
 
 Los escenarios corren en Make aunque nadie abra la app. Los endpoints usan la última carga guardada en Supabase.
