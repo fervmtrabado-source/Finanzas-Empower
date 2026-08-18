@@ -417,13 +417,31 @@ async function markMonthlyContactedData(event) {
     h1 { margin: 0 0 10px; font-size: 24px; }
     p { margin: 0; color: #52667a; font-size: 16px; line-height: 1.5; }
     strong { color: #0a2b52; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    button { border: 0; border-radius: 6px; background: #0a2b52; color: #fff; cursor: pointer; font-size: 15px; font-weight: 700; padding: 12px 16px; }
+    button.secondary { background: #e9f2fb; color: #0a2b52; }
+    .hint { display: none; margin-top: 14px; font-size: 14px; color: #637083; }
+    .hint.is-visible { display: block; }
   </style>
 </head>
 <body>
   <main>
     <h1>Listo, cliente marcado como contactado</h1>
     <p><strong>${escapeHtml(params.holder)}</strong><br>Poliza ${escapeHtml(params.policy_number)}<br>${escapeHtml(params.plan_name || "")}</p>
+    <div class="actions">
+      <button type="button" onclick="closePage()">Cerrar ventana</button>
+      <button class="secondary" type="button" onclick="history.back()">Regresar</button>
+    </div>
+    <p class="hint" id="close-hint">Si la ventana no se cierra sola, puedes cerrarla manualmente. El cliente ya quedo marcado.</p>
   </main>
+  <script>
+    function closePage() {
+      window.close();
+      setTimeout(function () {
+        document.getElementById("close-hint").className = "hint is-visible";
+      }, 350);
+    }
+  </script>
 </body>
 </html>`,
   };
