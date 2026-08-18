@@ -169,6 +169,14 @@ function formatAmount(value) {
   }).format(number);
 }
 
+function formatWholeAmount(value) {
+  const number = parseNumber(value);
+  if (!Number.isFinite(number) || number === 0) return "";
+  return new Intl.NumberFormat("es-MX", {
+    maximumFractionDigits: 0,
+  }).format(Math.round(number));
+}
+
 function getByAliases(row, aliases) {
   const keys = Object.keys(row);
   for (const alias of aliases) {
@@ -409,7 +417,7 @@ function renderAllRows() {
       row[columns.policy],
       row[columns.planName],
       getPlanCurrency(row),
-      formatAmount(getSumAssured(row)),
+      formatWholeAmount(getSumAssured(row)),
       row[columns.status],
       row[columns.frequency],
       isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
