@@ -224,7 +224,7 @@ function monthlyHtml(items, month, baseUrl) {
 function weeklyHtml(report) {
   return emailShell(
     `Cobros no automaticos: ${formatDate(report.weeklyStart)} al ${formatDate(report.weeklyEnd)}`,
-    "Estos son los cobros de la semana que no estan marcados como cargo automatico.",
+    "Maggie, estos son los cobros en modo directo y agente de esta semana.",
     paymentRowsHtml(report.weekly, "", false)
   );
 }

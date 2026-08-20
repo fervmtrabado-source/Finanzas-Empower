@@ -398,7 +398,7 @@ function weeklyEmail(report) {
   return {
     subject: `Cobros no automáticos: ${formatDate(report.weeklyStart)} al ${formatDate(report.weeklyEnd)}`,
     text: [
-      `Maggie, estos son los cobros no automáticos de esta semana:`,
+      "Maggie, estos son los cobros en modo directo y agente de esta semana:",
       "",
       ...report.weekly.map(({ row, date }) => `- ${formatDate(date)} | ${row[COLUMNS.holder]} | ${row[COLUMNS.policy]} | ${row[COLUMNS.planName]} | ${getPlanCurrency(row)} | ${row[COLUMNS.frequency]} | ${row[COLUMNS.paymentMethod]} | ${formatAmount(getPaymentPremium(row))}`),
     ].join("\n"),
