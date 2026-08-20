@@ -11,7 +11,6 @@ const COLUMNS = {
   birthDate: "Información adicional - Fecha de nacimiento",
   phone: "Información adicional - Teléfono de preferencia",
   email: "Información adicional - Email de preferencia",
-  sumAssured: "Suma asegurada",
   premium: "Prima anual emitido",
   premiumConverted: "Prima anual emitido (convertido)",
 };
@@ -129,14 +128,6 @@ function getConvertedPremium(row) {
   ]) || getByHeaderPattern(row, ["prima", "convert"]);
 }
 
-function getSumAssured(row) {
-  return row[COLUMNS.sumAssured] || getByAliases(row, [
-    "Suma asegurada",
-    "Suma asegurada emitida",
-    "Suma asegurada contratada",
-  ]) || getByHeaderPattern(row, ["suma", "asegurada"], ["convert"]);
-}
-
 function getPlanCurrency(row) {
   const converted = parseNumber(getConvertedPremium(row));
   const annual = parseNumber(getAnnualPremium(row));
@@ -165,8 +156,12 @@ function isSinglePremium(row) {
     hasSinglePremiumText(row[COLUMNS.frequency]);
 }
 
+function isActivePolicy(row) {
+  return normalize(row[COLUMNS.status]) === "EN VIGOR";
+}
+
 function isReportablePolicy(row) {
-  return normalize(row[COLUMNS.status]) === "EN VIGOR" && !isSinglePremium(row);
+  return isActivePolicy(row) && !isSinglePremium(row);
 }
 
 function dedupeByHolder(rows) {
@@ -242,7 +237,6 @@ function toPolicyRecord(row, uploadId) {
     holder: row[COLUMNS.holder] || "",
     insured: row[COLUMNS.insured] || "",
     next_birthday: row[COLUMNS.nextBirthday] || "",
-    sum_assured: getSumAssured(row),
     annual_premium: getAnnualPremium(row),
     converted_premium: getConvertedPremium(row),
     payment_premium: String(getPaymentPremium(row) || ""),
@@ -271,7 +265,6 @@ function fromPolicyRecord(record) {
     [COLUMNS.holder]: record.holder,
     [COLUMNS.insured]: record.insured,
     [COLUMNS.nextBirthday]: record.next_birthday,
-    [COLUMNS.sumAssured]: record.sum_assured,
     [COLUMNS.birthDate]: record.birth_date,
     [COLUMNS.phone]: record.phone,
     [COLUMNS.email]: record.email,
@@ -354,18 +347,19 @@ function getBirthdayMonthDay(row) {
 
 function buildReports(policyRecords, workDate = new Date()) {
   const rows = policyRecords.map(fromPolicyRecord);
-  const activeRows = rows.filter(isReportablePolicy);
+  const activeRows = rows.filter(isActivePolicy);
+  const reportableRows = activeRows.filter((row) => !isSinglePremium(row));
   const monthlyRange = nextMonthRange(workDate);
   const weeklyStart = startOfWeek(workDate);
   const weeklyEnd = endOfWeek(workDate);
 
-  const monthly = activeRows.flatMap((row) => {
+  const monthly = reportableRows.flatMap((row) => {
     const frequency = normalize(row[COLUMNS.frequency]);
     if (frequency !== "SEMESTRAL" && frequency !== "ANUAL") return [];
     return getOccurrencesInRange(row, monthlyRange.start, monthlyRange.end).map((date) => ({ row, date }));
   }).sort((a, b) => a.date - b.date || a.row[COLUMNS.holder].localeCompare(b.row[COLUMNS.holder]));
 
-  const weekly = activeRows.flatMap((row) => {
+  const weekly = reportableRows.flatMap((row) => {
     if (isAutomatic(row)) return [];
     return getOccurrencesInRange(row, weeklyStart, weeklyEnd).map((date) => ({ row, date }));
   }).sort((a, b) => a.date - b.date || a.row[COLUMNS.holder].localeCompare(b.row[COLUMNS.holder]));
@@ -380,8 +374,8 @@ function buildReports(policyRecords, workDate = new Date()) {
 
 function buildMonthlyForRange(policyRecords, range) {
   const rows = policyRecords.map(fromPolicyRecord);
-  const activeRows = rows.filter(isReportablePolicy);
-  return activeRows.flatMap((row) => {
+  const reportableRows = rows.filter(isReportablePolicy);
+  return reportableRows.flatMap((row) => {
     const frequency = normalize(row[COLUMNS.frequency]);
     if (frequency !== "SEMESTRAL" && frequency !== "ANUAL") return [];
     return getOccurrencesInRange(row, range.start, range.end).map((date) => ({ row, date }));

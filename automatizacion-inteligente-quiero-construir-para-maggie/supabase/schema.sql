@@ -24,7 +24,6 @@ create table if not exists public.policies (
   holder text,
   insured text,
   next_birthday text,
-  sum_assured text,
   annual_premium text,
   converted_premium text,
   payment_premium text,
@@ -39,9 +38,6 @@ create table if not exists public.policies (
 create index if not exists policies_upload_id_idx on public.policies(upload_id);
 create index if not exists policies_status_idx on public.policies(status);
 create index if not exists policies_policy_number_idx on public.policies(policy_number);
-
-alter table public.policies
-  add column if not exists sum_assured text;
 
 create table if not exists public.notification_log (
   id uuid primary key default gen_random_uuid(),

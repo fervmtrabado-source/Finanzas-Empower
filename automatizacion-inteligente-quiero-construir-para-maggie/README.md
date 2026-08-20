@@ -8,7 +8,8 @@ Asistente digital para que Maggie suba un CSV de pólizas y reciba avisos autom�
 - Al abrir la app, carga la última versión guardada en Supabase.
 - Maggie solo necesita abrir la app cuando quiera reemplazar o revisar el CSV.
 - Conserva solo pólizas con estatus exacto `En Vigor`; por eso excluye `En Vigor sin Pago de Primas`.
-- Excluye planes/frecuencias de prima única, incluyendo textos como `PRIMA UNICA`, `PRIMA ÚNICA` o `PU`.
+- Conserva planes/frecuencias de prima única en la cartera, incluyendo textos como `PRIMA UNICA`, `PRIMA ÚNICA` o `PU`.
+- Excluye prima única solo de reportes de cobro; cumpleaños sí la considera.
 - Calcula fechas de cobro con `Fecha de pago` si existe; si no, usa `Fecha de emisión`.
 - Reporte mensual: pólizas `SEMESTRAL` y `ANUAL` que cobran el mes siguiente.
 - Seguimiento mensual: permite marcar clientes como contactados y enviar pendientes cada viernes.
@@ -43,10 +44,10 @@ MAKE_SHARED_SECRET=
 Make debe leer estos endpoints y usar el JSON para enviar correos:
 
 ```txt
-https://intelligencefe.netlify.app/.netlify/functions/weekly-data
-https://intelligencefe.netlify.app/.netlify/functions/monthly-data
-https://intelligencefe.netlify.app/.netlify/functions/monthly-pending-data
-https://intelligencefe.netlify.app/.netlify/functions/birthday-data
+https://carterainteligente.netlify.app/.netlify/functions/weekly-data
+https://carterainteligente.netlify.app/.netlify/functions/monthly-data
+https://carterainteligente.netlify.app/.netlify/functions/monthly-pending-data
+https://carterainteligente.netlify.app/.netlify/functions/birthday-data
 ```
 
 Primera prueba:
@@ -62,7 +63,7 @@ Para pruebas se puede agregar `?date=YYYY-MM-DD`. Si `MAKE_SHARED_SECRET` está 
 x-make-secret: valor-del-secreto
 ```
 
-Cada endpoint devuelve `count`, `subject`, `text` e `items`. `birthday-data` también devuelve `html` para mandar a Maggie un correo de revisión con botones para abrir una tarjeta visual por persona. Los campos clave en `items` son:
+Cada endpoint devuelve `count`, `subject`, `text`, `html` e `items`. `birthday-data` devuelve `html` para mandar a Maggie un correo de revisión con botones para abrir una tarjeta visual por persona. Los campos clave en `items` son:
 
 ```txt
 payment_date
@@ -84,7 +85,7 @@ phone
 
 ## Escenarios en Make
 
-- Semanal: cada lunes, leer `weekly-data`, filtrar `count > 0`, enviar `subject` y `text`.
+- Semanal: cada lunes, leer `weekly-data`, filtrar `count > 0`, enviar `subject` y `html`.
 - Mensual: diario, leer `monthly-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `html` o `text`.
 - Pendientes mensuales: cada viernes, leer `monthly-pending-data`, filtrar `should_send_today = true` y `count > 0`, enviar `subject` y `html` o `text`.
 - Cumpleaños: diario, leer `birthday-data`, filtrar `count > 0`, enviar `subject` y `html` a Maggie para que revise las tarjetas y las comparta por WhatsApp.

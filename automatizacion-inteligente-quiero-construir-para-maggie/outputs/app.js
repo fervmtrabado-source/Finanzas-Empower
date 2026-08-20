@@ -17,7 +17,6 @@ const columns = {
   birthDate: "Información adicional - Fecha de nacimiento",
   phone: "Información adicional - Teléfono de preferencia",
   email: "Información adicional - Email de preferencia",
-  sumAssured: "Suma asegurada",
   premium: "Prima anual emitido",
   premiumConverted: "Prima anual emitido (convertido)",
 };
@@ -169,14 +168,6 @@ function formatAmount(value) {
   }).format(number);
 }
 
-function formatWholeAmount(value) {
-  const number = parseNumber(value);
-  if (!Number.isFinite(number) || number === 0) return "";
-  return new Intl.NumberFormat("es-MX", {
-    maximumFractionDigits: 0,
-  }).format(Math.round(number));
-}
-
 function getByAliases(row, aliases) {
   const keys = Object.keys(row);
   for (const alias of aliases) {
@@ -215,14 +206,6 @@ function getConvertedPremium(row) {
   ]) || getByHeaderPattern(row, ["prima", "convert"]);
 }
 
-function getSumAssured(row) {
-  return row[columns.sumAssured] || getByAliases(row, [
-    "Suma asegurada",
-    "Suma asegurada emitida",
-    "Suma asegurada contratada",
-  ]) || getByHeaderPattern(row, ["suma", "asegurada"], ["convert"]);
-}
-
 function getPlanCurrency(row) {
   const converted = parseNumber(getConvertedPremium(row));
   const annual = parseNumber(getAnnualPremium(row));
@@ -251,8 +234,12 @@ function isSinglePremium(row) {
     hasSinglePremiumText(row[columns.frequency]);
 }
 
+function isActivePolicy(row) {
+  return normalize(row[columns.status]) === "EN VIGOR";
+}
+
 function isReportablePolicy(row) {
-  return normalize(row[columns.status]) === "EN VIGOR" && !isSinglePremium(row);
+  return isActivePolicy(row) && !isSinglePremium(row);
 }
 
 function dedupeByHolder(rows) {
@@ -323,18 +310,19 @@ function getBirthdayMonthDay(row) {
 }
 
 function buildReports(workDate) {
-  const activeRows = state.rows.filter(isReportablePolicy);
+  const activeRows = state.rows.filter(isActivePolicy);
+  const reportableRows = activeRows.filter((row) => !isSinglePremium(row));
   const monthlyRange = nextMonthRange(workDate);
   const weeklyStart = startOfWeek(workDate);
   const weeklyEnd = endOfWeek(workDate);
 
-  const monthly = activeRows.flatMap((row) => {
+  const monthly = reportableRows.flatMap((row) => {
     const frequency = normalize(row[columns.frequency]);
     if (frequency !== "SEMESTRAL" && frequency !== "ANUAL") return [];
     return getOccurrencesInRange(row, monthlyRange.start, monthlyRange.end).map((date) => ({ row, date }));
   }).sort((a, b) => a.date - b.date || a.row[columns.holder].localeCompare(b.row[columns.holder]));
 
-  const weekly = activeRows.flatMap((row) => {
+  const weekly = reportableRows.flatMap((row) => {
     if (isAutomatic(row)) return [];
     return getOccurrencesInRange(row, weeklyStart, weeklyEnd).map((date) => ({ row, date }));
   }).sort((a, b) => a.date - b.date || a.row[columns.holder].localeCompare(b.row[columns.holder]));
@@ -358,9 +346,9 @@ function emptyHtml(message, colSpan) {
 function render() {
   const workDate = parseDate(els.workDate.value) || new Date();
   const reports = buildReports(workDate);
-  state.filteredRows = reports.activeRows;
+  state.filteredRows = state.rows;
 
-  els.totalPolicies.textContent = reports.activeRows.length;
+  els.totalPolicies.textContent = state.rows.length;
   els.monthlyCount.textContent = reports.monthly.length;
   els.weeklyCount.textContent = reports.weekly.length;
   els.birthdayCount.textContent = reports.birthdays.length;
@@ -410,22 +398,22 @@ function renderAllRows() {
   }).slice(0, 180);
 
   els.allRows.innerHTML = rows.length ? rows.map((row) => {
-    const next = getOccurrencesInRange(row, workDate, lookAheadEnd)[0];
+    const singlePremium = isSinglePremium(row);
+    const next = singlePremium ? null : getOccurrencesInRange(row, workDate, lookAheadEnd)[0];
     const birthday = getBirthdayMonthDay(row);
     return rowHtml([
       row[columns.holder],
       row[columns.policy],
       row[columns.planName],
       getPlanCurrency(row),
-      formatWholeAmount(getSumAssured(row)),
       row[columns.status],
       row[columns.frequency],
-      isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
-      formatAmount(getPaymentPremium(row)),
+      singlePremium ? `<span class="pill">Prima única</span>` : isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
+      singlePremium ? "" : formatAmount(getPaymentPremium(row)),
       next ? formatDate(next) : "",
       birthday ? `${String(birthday.day).padStart(2, "0")}/${String(birthday.month + 1).padStart(2, "0")}` : "",
     ]);
-  }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 11);
+  }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 10);
 }
 
 function renderBirthdays(rows) {
