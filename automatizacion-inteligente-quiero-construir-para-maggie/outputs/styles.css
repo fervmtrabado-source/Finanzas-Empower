@@ -478,26 +478,227 @@ tbody tr:hover {
 }
 
 @media (max-width: 860px) {
+  body {
+    background:
+      linear-gradient(180deg, rgba(13, 42, 67, .07), transparent 220px),
+      var(--paper);
+  }
+
+  .app-shell {
+    width: min(100% - 20px, 680px);
+    padding: 10px 0 28px;
+  }
+
   .topbar,
   .panel-heading {
     align-items: stretch;
     flex-direction: column;
   }
 
+  .topbar {
+    gap: 14px;
+    margin: 0 0 12px;
+    padding: 12px;
+  }
+
   .topbar-actions {
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: stretch;
   }
 
   .status-band {
     grid-template-columns: 1fr;
-    padding: 22px;
+    gap: 18px;
+    padding: 20px 18px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .brand img {
+    width: 100%;
+    max-width: 360px;
+  }
+
+  h1 {
+    font-size: 34px;
+    line-height: 1.06;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  #fileStatus {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .sync-status {
+    display: block;
+    font-size: 12px;
+  }
+
+  .summary-grid article {
+    min-height: 88px;
+    padding: 14px;
+  }
+
+  .summary-grid span {
+    font-size: 30px;
+  }
+
+  .summary-grid small {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .tab {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 10px;
+    white-space: normal;
+    line-height: 1.15;
+  }
+
+  .panel {
+    padding: 18px 14px;
+  }
+
+  .panel-heading {
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .ghost-button,
+  .upload-button,
+  .date-control input,
+  .search {
+    width: 100%;
+  }
+
+  .notice {
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  table,
+  thead,
+  tbody,
+  tr,
+  th,
+  td {
+    display: block;
+  }
+
+  table {
+    min-width: 0;
+  }
+
+  thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  tr {
+    border: 1px solid rgba(13, 42, 67, .12);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: var(--soft-shadow);
+    overflow: hidden;
+  }
+
+  tbody tr:nth-child(even),
+  tbody tr:hover {
+    background: var(--white);
+  }
+
+  td {
+    display: grid;
+    grid-template-columns: minmax(112px, 36%) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  td:last-child {
+    border-bottom: 0;
+  }
+
+  td.empty {
+    display: block;
+    padding: 24px 14px;
+  }
+
+  td.empty::before {
+    content: "";
+  }
+
+  .pill {
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-shell {
+    width: min(100% - 14px, 520px);
   }
 
   .summary-grid {
     grid-template-columns: 1fr;
   }
 
-  .brand img {
-    width: 100%;
+  h1 {
+    font-size: 30px;
+  }
+
+  .tabs {
+    grid-template-columns: 1fr;
+  }
+
+  td {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }

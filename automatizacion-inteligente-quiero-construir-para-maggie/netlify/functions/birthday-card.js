@@ -109,7 +109,7 @@ exports.handler = async (event) => {
     const logo = new Image();
 
     background.src = "/assets/birthday-card-bg.png";
-    logo.src = "/assets/finanzas-empower-logo.jpg";
+    logo.src = "/assets/finanzas-empower-logo.jpg?v=20260820";
 
     function fitText(text, maxWidth, baseSize, minSize, family) {
       let size = baseSize;

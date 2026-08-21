@@ -335,8 +335,8 @@ function buildReports(workDate) {
   return { activeRows, monthly, weekly, birthdays, monthlyRange, weeklyStart, weeklyEnd };
 }
 
-function rowHtml(cells) {
-  return `<tr>${cells.map((cell) => `<td>${cell || ""}</td>`).join("")}</tr>`;
+function rowHtml(cells, labels = []) {
+  return `<tr>${cells.map((cell, index) => `<td data-label="${labels[index] || ""}">${cell || ""}</td>`).join("")}</tr>`;
 }
 
 function emptyHtml(message, colSpan) {
@@ -356,6 +356,9 @@ function render() {
   els.weeklyTitle.textContent = `${formatDate(reports.weeklyStart)} al ${formatDate(reports.weeklyEnd)}`;
   els.birthdayTitle.textContent = `Cumpleaños del ${formatDate(workDate)}`;
 
+  const reportLabels = ["Fecha", "Contratante", "Póliza", "Plan", "Moneda", "Frecuencia", "Método", "Prima"];
+  const archiveLabels = ["Contratante", "Póliza", "Plan", "Moneda", "Estatus", "Frecuencia", "Método", "Prima", "Próximo cobro", "Cumpleaños"];
+
   els.monthlyRows.innerHTML = reports.monthly.length ? reports.monthly.map(({ row, date }) => rowHtml([
     formatDate(date),
     row[columns.holder],
@@ -365,7 +368,7 @@ function render() {
     `<span class="pill rose">${row[columns.frequency]}</span>`,
     row[columns.paymentMethod],
     formatAmount(getPaymentPremium(row)),
-  ])).join("") : emptyHtml("No hay pólizas semestrales o anuales para el mes siguiente.", 8);
+  ], reportLabels)).join("") : emptyHtml("No hay pólizas semestrales o anuales para el mes siguiente.", 8);
 
   els.weeklyRows.innerHTML = reports.weekly.length ? reports.weekly.map(({ row, date }) => rowHtml([
     formatDate(date),
@@ -376,13 +379,13 @@ function render() {
     `<span class="pill">${row[columns.frequency]}</span>`,
     row[columns.paymentMethod],
     formatAmount(getPaymentPremium(row)),
-  ])).join("") : emptyHtml("No hay cobros no automáticos para esta semana.", 8);
+  ], reportLabels)).join("") : emptyHtml("No hay cobros no automáticos para esta semana.", 8);
 
-  renderAllRows();
+  renderAllRows(archiveLabels);
   renderBirthdays(reports.birthdays);
 }
 
-function renderAllRows() {
+function renderAllRows(archiveLabels = ["Contratante", "Póliza", "Plan", "Moneda", "Estatus", "Frecuencia", "Método", "Prima", "Próximo cobro", "Cumpleaños"]) {
   const query = normalize(els.searchBox.value);
   const workDate = parseDate(els.workDate.value) || new Date();
   const lookAheadEnd = new Date(workDate);
@@ -412,7 +415,7 @@ function renderAllRows() {
       singlePremium ? "" : formatAmount(getPaymentPremium(row)),
       next ? formatDate(next) : "",
       birthday ? `${String(birthday.day).padStart(2, "0")}/${String(birthday.month + 1).padStart(2, "0")}` : "",
-    ]);
+    ], archiveLabels);
   }).join("") : emptyHtml("No encontré resultados con esa búsqueda.", 10);
 }
 
