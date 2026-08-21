@@ -68,6 +68,44 @@ function normalize(value) {
     .toUpperCase();
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function normalizeChar(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+}
+
+function highlightMatch(value, query) {
+  const text = String(value || "");
+  if (!query) return escapeHtml(text);
+
+  let normalized = "";
+  const indexMap = [];
+  Array.from(text).forEach((char, index) => {
+    const normalizedChar = normalizeChar(char);
+    normalized += normalizedChar;
+    for (let offset = 0; offset < normalizedChar.length; offset += 1) {
+      indexMap.push(index);
+    }
+  });
+
+  const start = normalized.indexOf(query);
+  if (start === -1) return escapeHtml(text);
+
+  const originalStart = indexMap[start];
+  const originalEnd = indexMap[start + query.length - 1] + 1;
+  return `${escapeHtml(text.slice(0, originalStart))}<mark class="search-hit">${escapeHtml(text.slice(originalStart, originalEnd))}</mark>${escapeHtml(text.slice(originalEnd))}`;
+}
+
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -405,14 +443,16 @@ function renderAllRows(archiveLabels = ["Contratante", "Póliza", "Plan", "Moned
     const singlePremium = isSinglePremium(row);
     const next = singlePremium ? null : getOccurrencesInRange(row, workDate, lookAheadEnd)[0];
     const birthday = getBirthdayMonthDay(row);
+    const methodLabel = singlePremium ? "Prima única" : isAutomatic(row) ? "Cargo automático" : row[columns.paymentMethod];
+    const methodClass = singlePremium || isAutomatic(row) ? "pill" : "pill rose";
     return rowHtml([
-      row[columns.holder],
-      row[columns.policy],
-      row[columns.planName],
+      highlightMatch(row[columns.holder], query),
+      highlightMatch(row[columns.policy], query),
+      highlightMatch(row[columns.planName], query),
       getPlanCurrency(row),
       row[columns.status],
-      row[columns.frequency],
-      singlePremium ? `<span class="pill">Prima única</span>` : isAutomatic(row) ? `<span class="pill">Cargo automático</span>` : `<span class="pill rose">${row[columns.paymentMethod]}</span>`,
+      highlightMatch(row[columns.frequency], query),
+      `<span class="${methodClass}">${highlightMatch(methodLabel, query)}</span>`,
       singlePremium ? "" : formatAmount(getPaymentPremium(row)),
       next ? formatDate(next) : "",
       birthday ? `${String(birthday.day).padStart(2, "0")}/${String(birthday.month + 1).padStart(2, "0")}` : "",
