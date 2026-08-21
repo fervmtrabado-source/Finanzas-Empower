@@ -394,6 +394,7 @@ function renderAllRows(archiveLabels = ["Contratante", "Póliza", "Plan", "Moned
     const haystack = normalize([
       row[columns.holder],
       row[columns.policy],
+      row[columns.planName],
       row[columns.paymentMethod],
       row[columns.frequency],
     ].join(" "));
