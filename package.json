@@ -6,5 +6,8 @@
   "scripts": {
     "dev": "netlify dev",
     "serve": "python3 -m http.server 4180 --directory outputs"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.8.2"
   }
 }
